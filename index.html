@@ -106,24 +106,31 @@ table th:nth-child(2),table td:nth-child(2){display:none}
 
   <div class="card section">
     <h3>💰 Rencana Keuangan Bulanan</h3>
+    <div class="form">
+      <select id="budgetPeriod" onchange="updatePeriodBudget()">
+        <option value="1">Periode 1 — Rp700.000</option>
+        <option value="2">Periode 2 — Rp800.000</option>
+      </select>
+    </div>
+
     <div class="budget-list">
       <div class="budget-row">
-        <div><span>🍜</span><b>Jajan sekolah</b><small>Rp600.000 / bulan</small></div>
-        <div class="budget-right"><strong id="budgetJajan">Rp0</strong><div class="mini-progress"><i id="barJajan"></i></div></div>
+        <div><span>🍜</span><b>Jajan sekolah</b><small id="jajanPlan">Rp300.000 / periode</small></div>
+        <div class="budget-right"><strong id="jajanSpent">Rp0 / Rp300.000</strong><div class="mini-progress"><i id="jajanBar"></i></div></div>
       </div>
       <div class="budget-row">
-        <div><span>🧋</span><b>Nongkrong</b><small>Rp320.000 / bulan</small></div>
-        <div class="budget-right"><strong id="budgetNongkrong">Rp0</strong><div class="mini-progress"><i id="barNongkrong"></i></div></div>
+        <div><span>🧋</span><b>Nongkrong</b><small id="nongkrongPlan">Rp160.000 / periode</small></div>
+        <div class="budget-right"><strong id="nongkrongSpent">Rp0 / Rp160.000</strong><div class="mini-progress"><i id="nongkrongBar"></i></div></div>
       </div>
       <div class="budget-row">
-        <div><span>🏦</span><b>Tabungan</b><small>Rp450.000 / bulan</small></div>
-        <div class="budget-right"><strong id="budgetTabungan">Rp0</strong><div class="mini-progress"><i id="barTabungan"></i></div></div>
+        <div><span>🏦</span><b>Tabungan</b><small id="tabunganPlan">Rp200.000 / periode</small></div>
+        <div class="budget-right"><strong id="tabunganSpent">Rp0 / Rp200.000</strong><div class="mini-progress"><i id="tabunganBar"></i></div></div>
       </div>
       <div class="budget-row">
-        <div><span>🛟</span><b>Cadangan</b><small>Rp130.000 / bulan</small></div>
-        <div class="budget-right"><strong id="budgetCadangan">Rp0</strong><div class="mini-progress"><i id="barCadangan"></i></div></div>
+        <div><span>🛟</span><b>Cadangan</b><small id="cadanganPlan">Rp40.000 / periode</small></div>
+        <div class="budget-right"><strong id="cadanganSpent">Rp0 / Rp40.000</strong><div class="mini-progress"><i id="cadanganBar"></i></div></div>
       </div>
-      <div class="budget-total"><span>Total budget</span><strong>Rp1.500.000</strong></div>
+      <div class="budget-total"><span>Total budget</span><strong id="budgetTotal">Rp700.000</strong></div>
     </div>
   </div>
 
@@ -306,6 +313,12 @@ function resetData(){
   render();
 }
 
+function updatePeriodBudget(){
+  const value = document.getElementById("budgetPeriod").value;
+  localStorage.setItem("keuanganku_budget_period", value);
+  render();
+}
+
 function render(){
   const income=data.filter(x=>x.type==="income").reduce((a,x)=>a+x.amount,0);
   const expense=data.filter(x=>x.type==="expense").reduce((a,x)=>a+x.amount,0);
@@ -327,19 +340,32 @@ function render(){
   }
 
 
-  const budgets = {Jajan:600000, Nongkrong:320000, Kebutuhan:130000, Transportasi:0, Game:0, Lainnya:0};
+  const period = localStorage.getItem("keuanganku_budget_period") || "1";
+  const plan = period === "2"
+    ? {total:800000,jajan:300000,nongkrong:160000,tabungan:250000,cadangan:90000}
+    : {total:700000,jajan:300000,nongkrong:160000,tabungan:200000,cadangan:40000};
+
   const spentJajan = data.filter(x=>x.type==="expense" && x.category==="Jajan").reduce((a,x)=>a+x.amount,0);
   const spentNongkrong = data.filter(x=>x.type==="expense" && x.category==="Nongkrong").reduce((a,x)=>a+x.amount,0);
   const spentCadangan = data.filter(x=>x.type==="expense" && ["Kebutuhan","Transportasi","Game","Lainnya"].includes(x.category)).reduce((a,x)=>a+x.amount,0);
   const saved = Math.max(0,saldo);
-  document.getElementById("budgetJajan").textContent=rupiah(spentJajan)+" / Rp600.000";
-  document.getElementById("budgetNongkrong").textContent=rupiah(spentNongkrong)+" / Rp320.000";
-  document.getElementById("budgetTabungan").textContent=rupiah(saved)+" / Rp450.000";
-  document.getElementById("budgetCadangan").textContent=rupiah(spentCadangan)+" / Rp130.000";
-  document.getElementById("barJajan").style.width=Math.min(100,spentJajan/600000*100)+"%";
-  document.getElementById("barNongkrong").style.width=Math.min(100,spentNongkrong/320000*100)+"%";
-  document.getElementById("barTabungan").style.width=Math.min(100,saved/450000*100)+"%";
-  document.getElementById("barCadangan").style.width=Math.min(100,spentCadangan/130000*100)+"%";
+
+  document.getElementById("budgetPeriod").value = period;
+  document.getElementById("jajanPlan").textContent = rupiah(plan.jajan)+" / periode";
+  document.getElementById("nongkrongPlan").textContent = rupiah(plan.nongkrong)+" / periode";
+  document.getElementById("tabunganPlan").textContent = rupiah(plan.tabungan)+" / periode";
+  document.getElementById("cadanganPlan").textContent = rupiah(plan.cadangan)+" / periode";
+  document.getElementById("budgetTotal").textContent = rupiah(plan.total);
+
+  document.getElementById("jajanSpent").textContent = rupiah(spentJajan)+" / "+rupiah(plan.jajan);
+  document.getElementById("nongkrongSpent").textContent = rupiah(spentNongkrong)+" / "+rupiah(plan.nongkrong);
+  document.getElementById("tabunganSpent").textContent = rupiah(saved)+" / "+rupiah(plan.tabungan);
+  document.getElementById("cadanganSpent").textContent = rupiah(spentCadangan)+" / "+rupiah(plan.cadangan);
+
+  document.getElementById("jajanBar").style.width = Math.min(100,spentJajan/plan.jajan*100)+"%";
+  document.getElementById("nongkrongBar").style.width = Math.min(100,spentNongkrong/plan.nongkrong*100)+"%";
+  document.getElementById("tabunganBar").style.width = Math.min(100,saved/plan.tabungan*100)+"%";
+  document.getElementById("cadanganBar").style.width = Math.min(100,spentCadangan/plan.cadangan*100)+"%";
 
   const tbody=document.getElementById("history");
   tbody.innerHTML="";
