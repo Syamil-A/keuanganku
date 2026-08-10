@@ -42,6 +42,19 @@ th{color:#8e96a3;font-weight:500}
 #security-buttons{grid-template-columns:1fr}
 }
 @media(max-width:450px){.grid{grid-template-columns:1fr}}
+
+.budget-list{display:grid;gap:12px}
+.budget-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid #242932}
+.budget-row>div:first-child{min-width:150px}
+.budget-row span{font-size:19px;margin-right:7px}
+.budget-row b{font-size:14px}
+.budget-row small{display:block;color:#777;margin:4px 0 0 29px;font-size:11px}
+.budget-right{text-align:right;min-width:125px}
+.budget-right strong{font-size:13px}
+.mini-progress{height:6px;background:#252a32;border-radius:20px;margin-top:6px;overflow:hidden}
+.mini-progress i{display:block;height:100%;width:0;background:#63e6a5;border-radius:20px}
+.budget-total{display:flex;justify-content:space-between;padding-top:14px;font-size:15px}
+@media(max-width:450px){.budget-row{align-items:flex-start}.budget-right{min-width:105px}}
 </style>
 <style>
 body{padding-bottom:88px}
@@ -59,6 +72,19 @@ body{padding-bottom:88px}
 .two{gap:12px}
 table th:nth-child(2),table td:nth-child(2){display:none}
 }
+
+.budget-list{display:grid;gap:12px}
+.budget-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid #242932}
+.budget-row>div:first-child{min-width:150px}
+.budget-row span{font-size:19px;margin-right:7px}
+.budget-row b{font-size:14px}
+.budget-row small{display:block;color:#777;margin:4px 0 0 29px;font-size:11px}
+.budget-right{text-align:right;min-width:125px}
+.budget-right strong{font-size:13px}
+.mini-progress{height:6px;background:#252a32;border-radius:20px;margin-top:6px;overflow:hidden}
+.mini-progress i{display:block;height:100%;width:0;background:#63e6a5;border-radius:20px}
+.budget-total{display:flex;justify-content:space-between;padding-top:14px;font-size:15px}
+@media(max-width:450px){.budget-row{align-items:flex-start}.budget-right{min-width:105px}}
 </style>
 </head>
 <body>
@@ -75,6 +101,30 @@ table th:nth-child(2),table td:nth-child(2){display:none}
     <div class="card"><div class="label">Pemasukan</div><div class="value blue" id="income">Rp0</div></div>
     <div class="card"><div class="label">Pengeluaran</div><div class="value red" id="expense">Rp0</div></div>
     <div class="card"><div class="label">Tabungan</div><div class="value" id="saving">Rp0</div></div>
+  </div>
+
+
+  <div class="card section">
+    <h3>💰 Rencana Keuangan Bulanan</h3>
+    <div class="budget-list">
+      <div class="budget-row">
+        <div><span>🍜</span><b>Jajan sekolah</b><small>Rp600.000 / bulan</small></div>
+        <div class="budget-right"><strong id="budgetJajan">Rp0</strong><div class="mini-progress"><i id="barJajan"></i></div></div>
+      </div>
+      <div class="budget-row">
+        <div><span>🧋</span><b>Nongkrong</b><small>Rp320.000 / bulan</small></div>
+        <div class="budget-right"><strong id="budgetNongkrong">Rp0</strong><div class="mini-progress"><i id="barNongkrong"></i></div></div>
+      </div>
+      <div class="budget-row">
+        <div><span>🏦</span><b>Tabungan</b><small>Rp450.000 / bulan</small></div>
+        <div class="budget-right"><strong id="budgetTabungan">Rp0</strong><div class="mini-progress"><i id="barTabungan"></i></div></div>
+      </div>
+      <div class="budget-row">
+        <div><span>🛟</span><b>Cadangan</b><small>Rp130.000 / bulan</small></div>
+        <div class="budget-right"><strong id="budgetCadangan">Rp0</strong><div class="mini-progress"><i id="barCadangan"></i></div></div>
+      </div>
+      <div class="budget-total"><span>Total budget</span><strong>Rp1.500.000</strong></div>
+    </div>
   </div>
 
   <div class="two section">
@@ -275,6 +325,21 @@ function render(){
     document.getElementById("bar").style.width="0%";
     document.getElementById("targetText").textContent="Belum ada target";
   }
+
+
+  const budgets = {Jajan:600000, Nongkrong:320000, Kebutuhan:130000, Transportasi:0, Game:0, Lainnya:0};
+  const spentJajan = data.filter(x=>x.type==="expense" && x.category==="Jajan").reduce((a,x)=>a+x.amount,0);
+  const spentNongkrong = data.filter(x=>x.type==="expense" && x.category==="Nongkrong").reduce((a,x)=>a+x.amount,0);
+  const spentCadangan = data.filter(x=>x.type==="expense" && ["Kebutuhan","Transportasi","Game","Lainnya"].includes(x.category)).reduce((a,x)=>a+x.amount,0);
+  const saved = Math.max(0,saldo);
+  document.getElementById("budgetJajan").textContent=rupiah(spentJajan)+" / Rp600.000";
+  document.getElementById("budgetNongkrong").textContent=rupiah(spentNongkrong)+" / Rp320.000";
+  document.getElementById("budgetTabungan").textContent=rupiah(saved)+" / Rp450.000";
+  document.getElementById("budgetCadangan").textContent=rupiah(spentCadangan)+" / Rp130.000";
+  document.getElementById("barJajan").style.width=Math.min(100,spentJajan/600000*100)+"%";
+  document.getElementById("barNongkrong").style.width=Math.min(100,spentNongkrong/320000*100)+"%";
+  document.getElementById("barTabungan").style.width=Math.min(100,saved/450000*100)+"%";
+  document.getElementById("barCadangan").style.width=Math.min(100,spentCadangan/130000*100)+"%";
 
   const tbody=document.getElementById("history");
   tbody.innerHTML="";
